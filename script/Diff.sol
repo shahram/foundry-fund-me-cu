@@ -1,15 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
+// 1. Deploy mocks when we are on a local anvil chain
+// 2. Keep track of contract address across diffrent chains
+// Sepolia ETH/USD
+// Mainnet ETH/USD
 
-import {Script} from "forge-std/Script.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {Script} from "forge-std/Script.sol";
 import {MockV3Aggregator} from "../test/mocks/MockV3Aggregator.sol";
 
 contract HelperConfig is Script {
+    // if we are on a local anvil, we deploy mocks
+    // otherwise, grabe the existing address from the live network
+
     NetworkConfig public activeNetworkConfig;
+
     uint8 public constant DECIMALS = 8;
     int256 public constant INITIAL_PRICE = 2000e8;
+
     struct NetworkConfig {
         address priceFeed;
     }
@@ -19,7 +27,7 @@ contract HelperConfig is Script {
             activeNetworkConfig = getSepoliaEthConfig();
         } else if (block.chainid == 1) {
             activeNetworkConfig = getMainnetEthConfig();
-        } else {
+        } else if (block.chainid == 8545) {
             activeNetworkConfig = getOrCreateAnvilEthConfig();
         }
     }
