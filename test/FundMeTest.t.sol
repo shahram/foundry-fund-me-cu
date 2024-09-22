@@ -37,7 +37,19 @@ contract FundMeTest is Test {
 
     function testPriceFeedVersionIsAccurate() public view {
         uint256 version = fundMe.getVersion();
+        console.log("VERSION XXXXXXX", version);
         // console.log(version);
-        assertEq(version, 4);
+        // assertEq(version,4);
+        if (block.chainid == 11155111) {
+            assertEq(version, 4);
+        } else if (block.chainid == 1) {
+            assertEq(version, 6);
+        } else if (block.chainid == 31337) {
+            assertEq(version, 0);
+        }
+    }
+
+    function ownerIsMassageSender() public view {
+        assertEq(fundMe.i_owner(), address(this));
     }
 }

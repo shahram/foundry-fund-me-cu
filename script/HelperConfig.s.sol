@@ -6,13 +6,17 @@ pragma solidity ^0.8.18;
 // Mainnet ETH/USD
 
 import {Script} from "forge-std/Script.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {Script} from "forge-std/Script.sol";
+import {MockV3Aggregator} from "../test/mocks/MockV3Aggregator.sol";
 
-contract HelperConfig {
+contract HelperConfig is Script {
     // if we are on a local anvil, we deploy mocks
     // otherwise, grabe the existing address from the live network
 
     NetworkConfig public activeNetworkConfig;
-
+    uint8 public constant DECIMALS = 8;
+    int256 public constant INITIAL_PRICE = 2000e8;
     struct NetworkConfig {
         address priceFeed;
     }
@@ -23,7 +27,7 @@ contract HelperConfig {
         } else if (block.chainid == 1) {
             activeNetworkConfig = getMainnetEthConfig();
         } else if (block.chainid == 8545) {
-            activeNetworkConfig = getAnvilEthConfig();
+            activeNetworkConfig = getOrCreateAnvilEthConfig();
         }
     }
 
@@ -39,11 +43,26 @@ contract HelperConfig {
         // price feed address
         NetworkConfig memory ethConfig = NetworkConfig({
             priceFeed: 0x5C00128d4d1c2F4f652C267d7bcdD7aC99C16E16
+            //         0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
         });
         return ethConfig;
     }
 
-    function getAnvilEthConfig() public pure returns (NetworkConfig memory) {
+    function getOrCreateAnvilEthConfig() public returns (NetworkConfig memory) {
+        if (activeNetworkConfig.priceFeed != address(0)) {
+            return activeNetworkConfig;
+        }
         // price feed address
+        vm.startBroadcast();
+        MockV3Aggregator mockPriceFeed = new MockV3Aggregator(
+            DECIMALS,
+            INITIAL_PRICE
+        );
+        vm.stopBroadcast();
+
+        NetworkConfig memory anvilConfig = NetworkConfig({
+            priceFeed: address(mockPriceFeed)
+        });
+        return anvilConfig;
     }
 }
