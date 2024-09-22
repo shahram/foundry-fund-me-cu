@@ -6,12 +6,11 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 import {HelperConfig} from "./HelperConfig.s.sol";
 
 contract DeployFundMe is Script {
-    AggregatorV3Interface priceFeed;
-
-    HelperConfig helperConfig = new HelperConfig();
-    address ethUsdPriceFeed = helperConfig.activeNetworkConfig();
-
+    // AggregatorV3Interface priceFeed;
     function run() external returns (FundMe) {
+        HelperConfig helperConfig = new HelperConfig();
+        address ethUsdPriceFeed = helperConfig.activeNetworkConfig();
+
         vm.startBroadcast();
         FundMe fundMe = new FundMe(ethUsdPriceFeed);
         vm.stopBroadcast();
